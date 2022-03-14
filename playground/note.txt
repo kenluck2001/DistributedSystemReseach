@@ -1,0 +1,244 @@
+Debugging mpi application
+
+mpicc lamport.c && mpiexec -n 4 ./a.out
+
+OR
+
+mpirun -np 4 xterm -e gdb ./a.out -ex run
+
+
+MPI implementations: 
+–MPICH : http://www.mpich.org
+–MVAPICH : http://mvapich.cse.ohio-state.edu/
+–Intel MPI: http://software.intel.com/en-us/intel-mpi-library/
+–Microsoft MPI: https://msdn.microsoft.com/en-us/library/bb524831%28v=vs.85%29.aspx
+–Open MPI : http://www.open-mpi.org/
+–IBM MPI, Cray MPI, HP MPI, TH MPI, ..
+
+
+One-Sided communication
+https://pages.tacc.utexas.edu/~eijkhout/pcse/html/mpi-onesided.html
+
+
+Implement merkle tree as CRDT
+https://hal.inria.fr/hal-02303490/document
+https://arxiv.org/pdf/2004.00107.pdf
+
+
+Advanced tutorial on mpi
+https://web.cels.anl.gov/~thakur/sc17-mpi-tutorial/slides.pdf
+
+
+
+struct node {
+    int data;
+    struct node* next;
+};
+
+struct node* head = NULL;
+struct node* second = NULL;
+head = malloc(sizeof(struct node));// allocate 3 nodes in the heap
+
+head->data = 1;// setup first node
+head->next = second
+void Push(struct node** headRef, int data) {
+    struct node* newNode = malloc(sizeof(struct node));
+    newNode->data = data;
+    newNode->next = *headRef; // The '*' to dereferences back to the real head
+    *headRef = newNode;// ditto
+}
+
+//struct node* current = head;
+
+void PushTest() {
+    struct node* head = BuildTwoThree();
+    // suppose this returns the list {2, 3}
+    Push(&head, 1);// note the 
+    Push(&head, 13);// head is now the list {13, 1, 2, 3}
+}
+
+
+void front_back_split(struct node* source,struct node** frontRef, struct node** backRef) {
+
+    int length(struct node* head) {
+        int count = 0;
+        struct node* current = head;
+        while (current != NULL) {
+            count++;
+            current=current->next;
+        }
+        return(count);
+    }
+
+    int len = length(source);
+    int i;
+    struct node* current = source;
+    if (len < 2) {
+        *frontRef = source;
+        *backRef = NULL;
+    }else {
+        int hopCount = (len-1)/2;//(figured these with a few drawings)
+        for (i = 0; i<hopCount; i++) {
+            current = current->next;
+        }
+        // Now cut at current
+        *frontRef = source;
+        *backRef = current->next;
+        current->next = NULL;
+    }
+}
+
+void merge_sort(struct node** headRef) {
+
+    struct node* sorted_merge(struct node* a, struct node* b) {
+        struct node* result = NULL;
+
+        // Base cases
+        if (a==NULL) return(b);
+        else if (b==NULL) return(a);
+
+        // Pick either a or b, and recur
+        if (a->data <= b->data) {
+            result = a;
+            result->next = sorted_merge(a->next, b);
+        }else {
+            result = b;
+            result->next = sorted_merge(a, b->next);
+        }
+        return(result);
+    }
+
+    struct node* head = *headRef;
+    struct node* a;
+    struct node* b;// Base case -- length 0 or 1
+    if ((head == NULL) || (head->next == NULL)) {
+    return;
+    }
+    front_back_split(head, &a, &b);// Split head into 'a' and 'b' sublists
+    // We could just as well use AlternatingSplit()
+
+    merge_sort(&a);// Recursively sort the sublists
+    merge_sort(&b);
+    *headRef  = sorted_merge(a, b);// answer = merge the two sorted lists together
+}
+
+/////////////////////////////////////////////////////
+Using goto statement
+
+#include <stdio.h>
+
+int main() {
+
+   const int maxInput = 100;
+   int i;
+   double number, average, sum = 0.0;
+
+   for (i = 1; i <= maxInput; ++i) {
+      printf("%d. Enter a number: ", i);
+      scanf("%lf", &number);
+      
+      // go to jump if the user enters a negative number
+      if (number < 0.0) {
+         goto jump;
+      }
+      sum += number;
+   }
+
+jump:
+   average = sum / (i - 1);
+   printf("Sum = %.2f\n", sum);
+   printf("Average = %.2f", average);
+
+   return 0;
+}
+
+///////////////////////////////////////////////////////
+
+answer here 
+c++ - Huge difference in MPI_Wtime() after using MPI_Barrier()? - Stack Overflow
+https://stackoverflow.com/questions/17375144/huge-difference-in-mpi-wtime-after-using-mpi-barrier
+
+///////////////////////////////////////////////////////
+
+Having timer
+
+double start, end;
+start = MPI_Wtime();
+do {
+    end = MPI_Wtime();
+} while((end - start) <= 2.5);
+
+
+///////////////////////////////////////////////////////
+
+Broadcast
+
+#include <stdio.h>
+#include <string.h>
+#include "mpi.h"
+int main(int argc, char **argv)
+{
+  char message[20];
+  int  i, rank, size;
+  MPI_Status status;
+  MPI_Request request = MPI_REQUEST_NULL;
+  int root = 0;
+
+  MPI_Init(&argc, &argv);
+  MPI_Comm_size(MPI_COMM_WORLD, &size);
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+  if (rank == root)
+  {
+    strcpy(message, "Hello, world");
+  }
+  MPI_Ibcast(message, 13, MPI_CHAR, root, MPI_COMM_WORLD, \ 
+    &request);
+  MPI_Wait (&request, &status);
+  if (rank == root)
+  {
+    strcpy(message, "What will happen?");
+  }
+  printf( "Message from process %d : %s\n", rank, message);
+
+  MPI_Finalize();
+}
+
+
+/////////////////////////////////////////////////
+
+non blocking timer in C
+
+https://stackoverflow.com/questions/7771142/non-blocking-sleep-timer-in-c
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
