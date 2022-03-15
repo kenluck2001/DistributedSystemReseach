@@ -1,8 +1,8 @@
 # Distributed Computing From First Principles
 This is the page for source code accompanying my blog / textbook titled "Distributed Computing From First Principles"
 
-+ Blog link: ADD LINK
-+ Textbook link: ADD LINK
++ Blog link: https://kenluck2001.github.io/blog_post/distributed_computing_from_first_principles.html
++ Textbook link: https://kenluck2001.github.io/blog_post/authoring_a_new_book_on_distributed_computing.html
 
 ##### The file structure:
 + /playground
