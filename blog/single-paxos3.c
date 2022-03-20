@@ -97,6 +97,19 @@ int modify_var(struct mpi_counter_t *count, int increment) {
     return val;
 }
 
+
+int reset_var(struct mpi_counter_t *count, int valuein) {
+    int *vals = (int *)malloc( count->size * sizeof(int) );
+    int val;
+    near_atomic_shared(count, valuein, vals);
+    count->myval = valuein;
+    vals[count->rank] = count->myval;
+    val = count->myval;
+    free(vals);
+    return val;
+}
+
+
 int increment_counter(struct mpi_counter_t *count, int increment) {
     int *vals = (int *)malloc( count->size * sizeof(int) );
     int val;
@@ -309,9 +322,9 @@ int main(int argc, char **argv)
                     if (tag == mPROPOSE)
                     {
                         // store the value reserved for proposer
-                        round_number = modify_var(prop_round_number, recv.round_number);
-                        current_value = modify_var(prop_current_value, recv.value);
-                        max_promise_round_number = modify_var(prop_max_promise_round_number, recv.round_number);
+                        round_number = reset_var(prop_round_number, recv.round_number);
+                        current_value = reset_var(prop_current_value, recv.value);
+                        max_promise_round_number = reset_var(prop_max_promise_round_number, recv.round_number);
 
                         enum msgTag ctag = mPREPARE;
                         int nRole = 4;
@@ -334,7 +347,7 @@ int main(int argc, char **argv)
                             promise_cnt = increment_counter(prop_promise_cnt, 1);
                             if (max_promise_round_number <= recv.round_number )
                             {
-                                max_promise_round_number = modify_var(prop_max_promise_round_number, recv.round_number);
+                                max_promise_round_number = reset_var(prop_max_promise_round_number, recv.round_number);
 
                                 accept_value = recv;
                             }
@@ -447,17 +460,17 @@ int main(int argc, char **argv)
                         enum msgTag ctag;
                         if (round_number_promise <= recv.round_number)
                         {
-                            round_number_promise = modify_var(accept_round_number_promise, recv.round_number);
+                            round_number_promise = reset_var(accept_round_number_promise, recv.round_number);
                             ctag = mPROMISE;
 
                             int start = PROPOSER * NUM_REQUESTS;
                             int end = start + NUM_REQUESTS;
 
-                            current_value_accepted = modify_var(accept_current_value_accepted, recv.value);
+                            current_value_accepted = reset_var(accept_current_value_accepted, recv.value);
                             //}
                             payload.value = current_value_accepted; // current value
 
-                            round_number_accepted = modify_var(accept_round_number_accepted, recv.round_number);
+                            round_number_accepted = reset_var(accept_round_number_accepted, recv.round_number);
 
                             payload.round_number = round_number_accepted; // current rounder number
                             payload.custom_round_number = recv.round_number;
@@ -493,10 +506,10 @@ int main(int argc, char **argv)
 
                         if (round_number_promise <= recv.round_number)
                         {
-                            round_number_promise = modify_var(accept_round_number_promise, recv.round_number);
+                            round_number_promise = reset_var(accept_round_number_promise, recv.round_number);
 
-                            round_number_accepted = modify_var(accept_round_number_accepted, recv.round_number);
-                            current_value_accepted = modify_var(accept_current_value_accepted, recv.value);
+                            round_number_accepted = reset_var(accept_round_number_accepted, recv.round_number);
+                            current_value_accepted = reset_var(accept_current_value_accepted, recv.value);
 
                             payload.value = current_value_accepted; // current value
                             payload.round_number = round_number_accepted; // current rounder number
@@ -581,7 +594,7 @@ int main(int argc, char **argv)
                     {
                         if (current_value_decided == EMPTY)
                         {
-                            current_value_decided = modify_var(learner_current_value_decided, recv.value);
+                            current_value_decided = reset_var(learner_current_value_decided, recv.value);
                         }
                     }
 
