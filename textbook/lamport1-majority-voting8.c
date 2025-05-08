@@ -115,7 +115,6 @@ void send_initial_data(data *package, int num_procs,
         MPI_Isend(package, 1, mpi_data_type, other_rank, 0, MPI_COMM_WORLD,
                   &requests[other_rank]);
     }
-    MPI_Waitall(num_procs, requests, MPI_STATUSES_IGNORE); // Ensure all sends complete
 }
 
 /**
@@ -173,7 +172,6 @@ void receive_and_process_data(int my_rank, int num_procs,
     }
     MPI_Cancel(&recv_request);
     MPI_Wait(&recv_request, MPI_STATUS_IGNORE);
-    MPI_Waitall(num_procs, requests, MPI_STATUSES_IGNORE); // Ensure all sends complete
 }
 
 
