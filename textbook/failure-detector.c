@@ -1,5 +1,12 @@
 /*
- * Basic Heartbeat Failure Detector in Open MPI
+Name: Kenneth Emeka Odoh
+Basic Heartbeat Failure Detector in Open MPI
+
+
+How to run the source code
+===========================
+mpicc failure-detector.c && mpiexec -n 4 ./a.out
+mpicc failure-detector.c && mpiexec -n 8 ./a.out
  */
 #include <mpi.h>
 #include <stdio.h>

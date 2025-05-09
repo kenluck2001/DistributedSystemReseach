@@ -150,10 +150,8 @@ void delete_counter(struct mpi_counter_t **count) {
     return;
 }
 
- 
-MPI_Datatype serialize_data_stamp()
-{
-   /* create a type for struct data */
+MPI_Datatype serialize_data_stamp() {
+    /* create a type for struct data */
     const int nitems = 3;
 
     int blocklengths[nitems];
@@ -451,7 +449,7 @@ void proposerLogic(MPI_Comm row_comm[], MPI_Request requests[],
                 printf("Rank %d: Timeout waiting for vote.\n", my_rank);
                 break;  // Exit loop on timeout
             }
-            //usleep(10000);  // Optional delay
+            // usleep(10000);  // Optional delay
         }
         if (cnt == threshold) {
             if (!flag) MPI_Cancel(&requests[my_rank]);
@@ -618,7 +616,7 @@ void acceptorLogic(MPI_Comm row_comm[], MPI_Request requests[],
                 printf("Rank %d: Timeout waiting for vote.\n", my_rank);
                 break;  // Exit loop on timeout
             }
-            //usleep(10000);  // Optional delay
+            // usleep(10000);  // Optional delay
         }
         if (cnt == threshold) {
             if (!flag) MPI_Cancel(&requests[my_rank]);
@@ -692,7 +690,7 @@ void learnerLogic(MPI_Comm row_comm[], MPI_Request requests[],
                 printf("Rank %d: Timeout waiting for vote.\n", my_rank);
                 break;  // Exit loop on timeout
             }
-            //usleep(10000);  // Optional delay
+            // usleep(10000);  // Optional delay
         }
         if (cnt == threshold) {
             if (!flag) MPI_Cancel(&requests[my_rank]);

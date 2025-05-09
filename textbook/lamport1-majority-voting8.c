@@ -60,8 +60,6 @@ typedef struct data_stamp {
     int lamport_vec[MAXNUMOFTHREADS];
 } data;
 
-
-
 MPI_Datatype serialize_data_stamp(int num_procs) {
     /* create a type for struct data */
     const int nitems = 3;
@@ -86,13 +84,12 @@ MPI_Datatype serialize_data_stamp(int num_procs) {
     offsets[2] = offsetof(data, lamport_vec);
 
     MPI_Type_create_struct(nitems, blocklengths, offsets, types,
-                               &mpi_data_type);
+                           &mpi_data_type);
     MPI_Type_commit(&mpi_data_type);
     return mpi_data_type;
 }
 
-void initialize_process_data(int my_rank, int num_procs,
-                                 data *package) {
+void initialize_process_data(int my_rank, int num_procs, data *package) {
     float probability = (my_rank == 0) ? 0.5 : 0.1;
     strncpy(package->key, "KEN", KEYLENGTH);
     package->value = (rand() > probability) ? 40 : 1;
@@ -109,8 +106,8 @@ void initialize_process_data(int my_rank, int num_procs,
  * @param mpi_data_type The MPI datatype for the data struct.
  * @param requests Array to store MPI requests.
  */
-void send_initial_data(data *package, int num_procs,
-                       MPI_Datatype mpi_data_type, MPI_Request *requests) {
+void send_initial_data(data *package, int num_procs, MPI_Datatype mpi_data_type,
+                       MPI_Request *requests) {
     for (int other_rank = 0; other_rank < num_procs; other_rank++) {
         MPI_Isend(package, 1, mpi_data_type, other_rank, 0, MPI_COMM_WORLD,
                   &requests[other_rank]);
@@ -128,9 +125,9 @@ void send_initial_data(data *package, int num_procs,
  * @param status Array of MPI status.
  */
 void receive_and_process_data(int my_rank, int num_procs,
-                             MPI_Datatype mpi_data_type, int *map_array,
-                             data *agreed_value,
-                             MPI_Request *requests, MPI_Status *status) {
+                              MPI_Datatype mpi_data_type, int *map_array,
+                              data *agreed_value, MPI_Request *requests,
+                              MPI_Status *status) {
     int largest_timestamp = -99999;
     int threshold = num_procs;
     int received_count = 0;
@@ -164,29 +161,27 @@ void receive_and_process_data(int my_rank, int num_procs,
                           MPI_COMM_WORLD, &requests[source]);
             }
             received_count++;
-            flag = 0; // Reset flag for the next receive
+            flag = 0;  // Reset flag for the next receive
             MPI_Irecv(&recv_data, 1, mpi_data_type, MPI_ANY_SOURCE, MPI_ANY_TAG,
                       MPI_COMM_WORLD, &recv_request);
         }
-        //usleep(10); // Add a small delay to avoid excessive CPU usage
+        // usleep(10); // Add a small delay to avoid excessive CPU usage
     }
     MPI_Cancel(&recv_request);
     MPI_Wait(&recv_request, MPI_STATUS_IGNORE);
 }
 
-
-
 /**
- * @brief Prints the agreed key-value pair and retrieves and prints values from the
- * map.
+ * @brief Prints the agreed key-value pair and retrieves and prints values from
+ * the map.
  * @param my_rank The rank of the current process.
  * @param agreed_value The agreed data value.
  * @param map_array The map array.
  */
 void print_and_retrieve_map_data(int my_rank, data *agreed_value,
                                  int *map_array) {
-    printf("latest Agreed key: %s, value: %d at rank: %d\n",
-           agreed_value->key, agreed_value->value, my_rank);
+    printf("latest Agreed key: %s, value: %d at rank: %d\n", agreed_value->key,
+           agreed_value->value, my_rank);
     char *key = agreed_value->key;
     int store_Value = getKeyValueToMap(&map_array, key);
 
@@ -212,8 +207,6 @@ void print_and_retrieve_map_data(int my_rank, data *agreed_value,
     }
 }
 
-
-
 int main(int argc, char **argv) {
     int my_rank, num_procs;
     /* Initialize the infrastructure necessary for communication */
@@ -226,7 +219,8 @@ int main(int argc, char **argv) {
     MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
 
     if (num_procs > MAXNUMOFTHREADS) {
-        fprintf(stderr, "Must more than %d process for this example\n", num_procs);
+        fprintf(stderr, "Must more than %d process for this example\n",
+                num_procs);
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
 
@@ -255,7 +249,6 @@ int main(int argc, char **argv) {
     print_and_retrieve_map_data(my_rank, &agreed_value, map_array);
 
     free(map_array);
-
 
     MPI_Type_free(&mpi_data_type);
     /* Tear down the communication infrastructure */
